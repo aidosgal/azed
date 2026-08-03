@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ensureGsapRegistered, gsap, ScrollTrigger } from "@/lib/gsapClient";
 import { cameraKeyframeOrder, cameraKeyframes } from "./cameraKeyframes";
@@ -17,6 +17,13 @@ import { cameraKeyframeOrder, cameraKeyframes } from "./cameraKeyframes";
  * scrub tick rate from R3F's frame loop.
  */
 export function CameraRig() {
+  // On the mobile "minimal" quality tier the canvas runs frameloop="demand"
+  // (see useResponsiveQuality), so R3F only repaints when invalidate() is
+  // called instead of free-running every tick. Without an explicit
+  // invalidate() call, GSAP would keep updating cameraState.current but the
+  // canvas would never actually repaint, making the CPU look stuck while
+  // scrolling on those devices.
+  const invalidate = useThree((state) => state.invalidate);
   const cameraState = useRef({
     x: cameraKeyframes.hero.position[0],
     y: cameraKeyframes.hero.position[1],
@@ -32,6 +39,7 @@ export function CameraRig() {
     const state = cameraState.current;
 
     const tl = gsap.timeline({
+      onUpdate: invalidate,
       scrollTrigger: {
         trigger: document.body,
         start: "top top",
@@ -65,7 +73,7 @@ export function CameraRig() {
       window.clearTimeout(resizeTimeout);
       window.removeEventListener("resize", refresh);
     };
-  }, []);
+  }, [invalidate]);
 
   const targetPosition = useRef(new THREE.Vector3());
   const targetLookAt = useRef(new THREE.Vector3());
@@ -85,6 +93,18 @@ export function CameraRig() {
     }
 
     camera.lookAt(targetLookAt.current);
+
+    // Under frameloop="demand" nothing else schedules a repaint once GSAP's
+    // scrub tick fires; keep requesting frames until the lerp has actually
+    // converged so the camera move plays out smoothly instead of stalling
+    // after a single frame.
+    const fovSettled =
+      !(camera instanceof THREE.PerspectiveCamera) ||
+      Math.abs(camera.fov - s.fov) < 1e-3;
+    const settled =
+      camera.position.distanceToSquared(targetPosition.current) < 1e-6 &&
+      fovSettled;
+    if (!settled) invalidate();
   });
 
   return null;
