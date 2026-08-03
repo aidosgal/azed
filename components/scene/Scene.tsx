@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
+import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { CpuModel } from "./CpuModel";
 import { CameraRig } from "./CameraRig";
 import { useResponsiveQuality } from "./useResponsiveQuality";
@@ -11,9 +12,9 @@ const ACCENT_COLOR = "#c6ff3d";
 const BACKGROUND_COLOR = "#0a0a0a";
 
 /**
- * Owns the R3F canvas: lighting, the procedural CPU model and the
- * scroll-driven camera rig. Rendered only on the client (see
- * SceneClientLoader) since Three.js needs a real DOM/WebGL context.
+ * Owns the R3F canvas: lighting, the CPU model and the scroll-driven camera
+ * rig. Rendered only on the client (see SceneClientLoader) since Three.js
+ * needs a real DOM/WebGL context.
  */
 export function Scene() {
   const quality = useResponsiveQuality();
@@ -41,6 +42,17 @@ export function Scene() {
         <CpuModel quality={quality} accentColor={ACCENT_COLOR} />
       </Suspense>
       <CameraRig />
+      {quality.bloom && (
+        <EffectComposer multisampling={0}>
+          <Bloom
+            mipmapBlur
+            intensity={0.9}
+            luminanceThreshold={0.2}
+            luminanceSmoothing={0.3}
+            radius={0.6}
+          />
+        </EffectComposer>
+      )}
     </Canvas>
   );
 }

@@ -6,45 +6,37 @@ export type QualityTier = "full" | "reduced" | "minimal";
 
 export interface QualitySettings {
   tier: QualityTier;
-  pinGridStep: number; // lower = denser grid = more pin instances
-  textureSize: number;
   dpr: [number, number];
-  wireframe: boolean;
   rimLight: boolean;
   idleMotion: boolean;
   frameloop: "always" | "demand";
+  bloom: boolean; // whether the neon bloom postprocessing pass is active
 }
 
 const TIER_SETTINGS: Record<QualityTier, QualitySettings> = {
   full: {
     tier: "full",
-    pinGridStep: 1,
-    textureSize: 512,
     dpr: [1, 2],
-    wireframe: true,
     rimLight: true,
     idleMotion: true,
     frameloop: "always",
+    bloom: true,
   },
   reduced: {
     tier: "reduced",
-    pinGridStep: 2,
-    textureSize: 256,
     dpr: [1, 1.5],
-    wireframe: false,
     rimLight: false,
     idleMotion: true,
     frameloop: "always",
+    bloom: true,
   },
   minimal: {
     tier: "minimal",
-    pinGridStep: 3,
-    textureSize: 0,
     dpr: [1, 1],
-    wireframe: false,
     rimLight: false,
     idleMotion: false,
     frameloop: "demand",
+    bloom: false,
   },
 };
 

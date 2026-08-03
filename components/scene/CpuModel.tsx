@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { Edges, Instance, Instances, RoundedBox } from "@react-three/drei";
-import { createCpuMaterials } from "./materials";
+import { useGLTF } from "@react-three/drei";
 import type { QualitySettings } from "./useResponsiveQuality";
 
 interface CpuModelProps {
@@ -12,31 +11,60 @@ interface CpuModelProps {
   accentColor: string;
 }
 
-const PCB_SIZE = 3.4;
-const PCB_HEIGHT = 0.16;
-const SPREADER_SIZE = 2.5;
-const SPREADER_HEIGHT = 0.46;
+const MODEL_PATH = "/models/cpu.glb";
+// The source asset is modeled at real-world scale (~4cm), scaled up here to
+// roughly match the framing the scroll camera keyframes were tuned for.
+const MODEL_SCALE = 70;
 
 /**
- * Procedural 3D CPU: PCB substrate, brushed-metal heat-spreader, an
- * exposed die, an instanced ridge lattice on top and an instanced pin
- * grid underneath. No external model/texture files — geometry and
- * surface detail are generated in code so the whole thing stays cheap
- * (well under ~20k tris, ~10 draw calls even at full quality).
+ * User-supplied CPU model (a real Ryzen-shaped chip, GLB, public/models/cpu.glb).
+ * On load: strips the real AMD Ryzen wordmark baked into the die/lid
+ * texture (trademark, not ours to reproduce) in favor of a plain brushed
+ * finish, then adds a neon accent glow to the model's own PCB edge and
+ * contact-pad texture so Scene.tsx's Bloom pass picks it up — no fabricated
+ * geometry, just the model's existing seams lit up.
  */
 export function CpuModel({ quality, accentColor }: CpuModelProps) {
+  const { scene, materials } = useGLTF(MODEL_PATH);
   const groupRef = useRef<THREE.Group>(null);
   const pointer = useRef({ x: 0, y: 0 });
   const pointerTarget = useRef({ x: 0, y: 0 });
 
-  const materials = useMemo(
-    () => createCpuMaterials(accentColor, quality.textureSize),
-    [accentColor, quality.textureSize]
-  );
+  const model = useMemo(() => {
+    const textMat = materials.CPUText as THREE.MeshStandardMaterial | undefined;
+    if (textMat) {
+      textMat.map = null;
+      textMat.color = new THREE.Color("#d0d0d0");
+      textMat.metalness = 0.8;
+      textMat.roughness = 0.35;
+      textMat.needsUpdate = true;
+    }
 
-  useEffect(() => {
-    return () => materials.dispose();
-  }, [materials]);
+    // Neon accent #1: the exposed PCB edge glows all the way around the chip.
+    const sideMat = materials.CPUBoardSide as THREE.MeshStandardMaterial | undefined;
+    if (sideMat) {
+      sideMat.emissive = new THREE.Color(accentColor);
+      sideMat.emissiveIntensity = 1.8;
+      sideMat.needsUpdate = true;
+    }
+
+    // Neon accent #2: reuse the board's own diffuse texture as its emissive
+    // map, so only the bright gold contact-pad clusters glow (the dark PCB
+    // background stays dark) — reads like tiny active status lights.
+    const boardMat = materials.CPUBoard as THREE.MeshStandardMaterial | undefined;
+    if (boardMat?.map) {
+      boardMat.emissive = new THREE.Color(accentColor);
+      boardMat.emissiveMap = boardMat.map;
+      boardMat.emissiveIntensity = 0.9;
+      boardMat.needsUpdate = true;
+    }
+
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const center = box.getCenter(new THREE.Vector3());
+    clone.position.sub(center);
+    return clone;
+  }, [scene, materials, accentColor]);
 
   useEffect(() => {
     if (!quality.idleMotion) return;
@@ -47,35 +75,6 @@ export function CpuModel({ quality, accentColor }: CpuModelProps) {
     window.addEventListener("pointermove", handlePointerMove);
     return () => window.removeEventListener("pointermove", handlePointerMove);
   }, [quality.idleMotion]);
-
-  // Pin grid positions on the PCB underside, density driven by quality tier.
-  const pinPositions = useMemo(() => {
-    const positions: [number, number][] = [];
-    const count = Math.max(4, Math.floor(18 / quality.pinGridStep));
-    const spacing = (PCB_SIZE * 0.78) / count;
-    const offset = ((count - 1) * spacing) / 2;
-    for (let ix = 0; ix < count; ix++) {
-      for (let iz = 0; iz < count; iz++) {
-        positions.push([ix * spacing - offset, iz * spacing - offset]);
-      }
-    }
-    return positions;
-  }, [quality.pinGridStep]);
-
-  // Ridge-lattice strip placements on the heat-spreader top face.
-  const ridgePositions = useMemo(() => {
-    const rows = 8;
-    const span = SPREADER_SIZE * 0.85;
-    const spacing = span / rows;
-    const offset = ((rows - 1) * spacing) / 2;
-    const strips: { pos: [number, number]; rotY: number }[] = [];
-    for (let i = 0; i < rows; i++) {
-      const p = i * spacing - offset;
-      strips.push({ pos: [p, 0], rotY: 0 });
-      strips.push({ pos: [0, p], rotY: Math.PI / 2 });
-    }
-    return strips;
-  }, []);
 
   useFrame((state, delta) => {
     const group = groupRef.current;
@@ -99,56 +98,10 @@ export function CpuModel({ quality, accentColor }: CpuModelProps) {
   });
 
   return (
-    <group ref={groupRef}>
-      <mesh
-        position={[0, -SPREADER_HEIGHT / 2 - PCB_HEIGHT / 2, 0]}
-        material={materials.pcbDark}
-      >
-        <boxGeometry args={[PCB_SIZE, PCB_HEIGHT, PCB_SIZE]} />
-        {quality.wireframe && <Edges color="#ffffff" transparent opacity={0.18} />}
-      </mesh>
-
-      <RoundedBox
-        args={[SPREADER_SIZE, SPREADER_HEIGHT, SPREADER_SIZE]}
-        radius={0.05}
-        smoothness={2}
-        material={materials.metalLight}
-      >
-        {quality.wireframe && <Edges color="#ffffff" transparent opacity={0.18} />}
-      </RoundedBox>
-
-      {/* Exposed die, inset near one edge of the heat-spreader's top face */}
-      <mesh
-        position={[
-          SPREADER_SIZE * 0.22,
-          SPREADER_HEIGHT / 2 + 0.03,
-          SPREADER_SIZE * 0.22,
-        ]}
-        material={materials.die}
-      >
-        <boxGeometry args={[0.9, 0.06, 0.9]} />
-      </mesh>
-
-      <Instances limit={ridgePositions.length} material={materials.metalLight}>
-        <boxGeometry args={[SPREADER_SIZE * 0.85, 0.035, 0.045]} />
-        {ridgePositions.map((r, i) => (
-          <Instance
-            key={i}
-            position={[r.pos[0], SPREADER_HEIGHT / 2 + 0.02, r.pos[1]]}
-            rotation={[0, r.rotY, 0]}
-          />
-        ))}
-      </Instances>
-
-      <Instances limit={pinPositions.length} material={materials.pin}>
-        <cylinderGeometry args={[0.028, 0.028, 0.22, 6]} />
-        {pinPositions.map(([x, z], i) => (
-          <Instance
-            key={i}
-            position={[x, -SPREADER_HEIGHT / 2 - PCB_HEIGHT - 0.11, z]}
-          />
-        ))}
-      </Instances>
+    <group ref={groupRef} scale={MODEL_SCALE}>
+      <primitive object={model} />
     </group>
   );
 }
+
+useGLTF.preload(MODEL_PATH);
