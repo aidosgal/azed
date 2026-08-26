@@ -110,6 +110,21 @@ function pointAtDistance(trace: Trace, distance: number): Point {
   return trace[trace.length - 1];
 }
 
+/** Points of `trace` between two arc-length distances, following every bend in between. */
+function pathPointsBetween(trace: Trace, fromDistance: number, toDistance: number): Point[] {
+  if (toDistance <= fromDistance) return [pointAtDistance(trace, fromDistance)];
+
+  const points: Point[] = [pointAtDistance(trace, fromDistance)];
+  let acc = 0;
+  for (let i = 1; i < trace.length; i++) {
+    acc += Math.hypot(trace[i].x - trace[i - 1].x, trace[i].y - trace[i - 1].y);
+    if (acc > fromDistance && acc < toDistance) points.push(trace[i]);
+    if (acc >= toDistance) break;
+  }
+  points.push(pointAtDistance(trace, toDistance));
+  return points;
+}
+
 function drawTraces(ctx: CanvasRenderingContext2D, traces: Trace[], color: string) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.strokeStyle = color;
@@ -205,19 +220,36 @@ export function AnimatedBackground() {
           continue;
         }
 
-        const head = pointAtDistance(trace, Math.min(pulse.distance, length));
-        const tail = pointAtDistance(trace, Math.max(0, pulse.distance - PULSE_TRAIL));
+        const headDistance = Math.min(pulse.distance, length);
+        const trailPoints = pathPointsBetween(
+          trace,
+          Math.max(0, pulse.distance - PULSE_TRAIL),
+          headDistance
+        );
 
-        const gradient = pulseCtx!.createLinearGradient(tail.x, tail.y, head.x, head.y);
-        gradient.addColorStop(0, "transparent");
-        gradient.addColorStop(1, accentColor);
-        pulseCtx!.strokeStyle = gradient;
+        // Fade alpha per segment along the trail's own bends, rather than a
+        // straight tail->head gradient that cuts across corners.
         pulseCtx!.lineWidth = 1.5;
-        pulseCtx!.beginPath();
-        pulseCtx!.moveTo(tail.x, tail.y);
-        pulseCtx!.lineTo(head.x, head.y);
-        pulseCtx!.stroke();
+        let acc = 0;
+        const segLengths: number[] = [0];
+        for (let i = 1; i < trailPoints.length; i++) {
+          acc += Math.hypot(
+            trailPoints[i].x - trailPoints[i - 1].x,
+            trailPoints[i].y - trailPoints[i - 1].y
+          );
+          segLengths.push(acc);
+        }
+        const trailLength = acc || 1;
+        for (let i = 1; i < trailPoints.length; i++) {
+          pulseCtx!.globalAlpha = segLengths[i] / trailLength;
+          pulseCtx!.beginPath();
+          pulseCtx!.moveTo(trailPoints[i - 1].x, trailPoints[i - 1].y);
+          pulseCtx!.lineTo(trailPoints[i].x, trailPoints[i].y);
+          pulseCtx!.stroke();
+        }
+        pulseCtx!.globalAlpha = 1;
 
+        const head = trailPoints[trailPoints.length - 1];
         pulseCtx!.beginPath();
         pulseCtx!.arc(head.x, head.y, PULSE_RADIUS, 0, Math.PI * 2);
         pulseCtx!.fill();
