@@ -1,7 +1,6 @@
 /**
  * All user-facing copy lives here so components stay copy-agnostic.
- * Content is placeholder/plausible for now — swap in real project data,
- * bio and contact details when available.
+ * Bio and contact details are still placeholder — swap in when available.
  */
 
 export const nav = {
@@ -46,46 +45,40 @@ export const projects = {
   subheading: "Избранные веб- и мобильные проекты последних лет.",
   items: [
     {
-      title: "Nimbus Finance",
+      title: "Viled.kz",
       description:
-        "Веб-платформа для управления личными финансами: аналитика расходов в реальном времени и кастомные дашборды.",
-      tags: ["Next.js", "TypeScript", "PostgreSQL"],
+        "Интернет-магазин брендовой одежды и аксессуаров премиум- и люкс-сегмента: каталог, подборки коллекций и оформление заказов.",
+      tags: ["E-commerce", "Web"],
       type: "web" as const,
+      image: "/projects/viled.jpg",
+      url: "https://viled.kz",
     },
     {
-      title: "Orbit Health",
+      title: "Zaman Bank",
       description:
-        "Мобильное приложение для трекинга здоровья с синхронизацией носимых устройств и персональными рекомендациями.",
-      tags: ["React Native", "Node.js", "HealthKit"],
+        "Мобильное приложение исламского цифрового банка — участвовал в разработке онлайн-финансирования, карт и переводов.",
+      tags: ["Mobile", "Fintech"],
       type: "mobile" as const,
+      image: "/projects/zamanbank.jpg",
+      url: "https://www.zamanbank.kz",
     },
     {
-      title: "Ferro CRM",
+      title: "Qogamfin.kz",
       description:
-        "CRM-система для производственных компаний: управление заказами, складом и клиентской базой в одном интерфейсе.",
-      tags: ["React", "Node.js", "Redis"],
+        "Сайт социального проекта «Қарызсыз қоғам» по финансовой грамотности: видеокурсы, калькуляторы и заявки на юридическую помощь.",
+      tags: ["Web", "EdTech"],
       type: "web" as const,
+      image: "/projects/qogamfin.jpg",
+      url: "https://qogamfin.kz",
     },
     {
-      title: "Loop Delivery",
+      title: "Qogamfin App",
       description:
-        "Приложение доставки с live-трекингом курьера на карте и оптимизацией маршрутов в реальном времени.",
-      tags: ["React Native", "MapBox", "WebSocket"],
+        "Мобильное приложение к платформе финансовой грамотности «Қарызсыз қоғам» — те же курсы и калькуляторы в мобильном формате.",
+      tags: ["Mobile", "EdTech"],
       type: "mobile" as const,
-    },
-    {
-      title: "Studio Alloy",
-      description:
-        "Сайт-визитка для дизайн-студии с 3D-элементами и покадровой анимацией, синхронизированной со скроллом.",
-      tags: ["Next.js", "Three.js", "GSAP"],
-      type: "web" as const,
-    },
-    {
-      title: "Pulse Fitness",
-      description:
-        "Кроссплатформенное приложение для тренировок с видео-программами и офлайн-режимом.",
-      tags: ["React Native", "TypeScript", "SQLite"],
-      type: "mobile" as const,
+      image: "/projects/qogamfin.jpg",
+      url: "https://qogamfin.kz",
     },
   ],
 };

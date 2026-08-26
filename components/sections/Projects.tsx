@@ -22,6 +22,8 @@ export function Projects() {
             description={project.description}
             tags={project.tags}
             type={project.type}
+            image={project.image}
+            url={project.url}
           />
         ))}
       </div>

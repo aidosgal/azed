@@ -9,9 +9,18 @@ interface ProjectCardProps {
   description: string;
   tags: string[];
   type: "web" | "mobile";
+  image?: string;
+  url?: string;
 }
 
-export function ProjectCard({ title, description, tags, type }: ProjectCardProps) {
+export function ProjectCard({
+  title,
+  description,
+  tags,
+  type,
+  image,
+  url,
+}: ProjectCardProps) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -21,10 +30,23 @@ export function ProjectCard({ title, description, tags, type }: ProjectCardProps
       className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-background/40 p-5 transition-colors hover:border-accent/60"
     >
       <div className="h-40">
-        <DeviceMockupFrame type={type} title={title} />
+        <DeviceMockupFrame type={type} title={title} image={image} />
       </div>
       <div className="mt-5 flex items-center justify-between">
-        <h3 className="text-lg font-bold text-foreground">{title}</h3>
+        <h3 className="text-lg font-bold text-foreground">
+          {url ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-accent"
+            >
+              {title}
+            </a>
+          ) : (
+            title
+          )}
+        </h3>
         <span className="text-xs uppercase tracking-widest text-muted">
           {type === "web" ? "Web" : "Mobile"}
         </span>
