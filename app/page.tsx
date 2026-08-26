@@ -1,4 +1,4 @@
-import { SceneClientLoader } from "@/components/scene/SceneClientLoader";
+import { AnimatedBackground } from "@/components/background/AnimatedBackground";
 import { Nav } from "@/components/sections/Nav";
 import { Hero } from "@/components/sections/Hero";
 import { About } from "@/components/sections/About";
@@ -8,7 +8,7 @@ import { Contact } from "@/components/sections/Contact";
 export default function Home() {
   return (
     <>
-      <SceneClientLoader />
+      <AnimatedBackground />
       <Nav />
       <main className="relative z-10">
         <Hero />
