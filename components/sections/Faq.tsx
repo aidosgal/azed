@@ -9,7 +9,7 @@ export function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="relative mx-auto max-w-6xl px-6 py-32 sm:px-10">
+    <section id="faq" className="relative mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-32">
       <SectionHeading
         eyebrow={faq.eyebrow}
         heading={faq.heading}

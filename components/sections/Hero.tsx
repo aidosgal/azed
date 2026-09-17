@@ -35,7 +35,7 @@ export function Hero() {
         </p>
         <Link
           href="#contact"
-          className="mt-10 inline-flex items-center justify-center rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-black transition-transform hover:scale-[1.02] active:scale-[0.98]"
+          className="mt-10 inline-flex items-center justify-center rounded-full bg-accent px-7 py-3.5 text-sm font-semibold text-background transition-transform hover:scale-[1.02] active:scale-[0.98]"
         >
           {hero.primaryCta}
         </Link>

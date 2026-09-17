@@ -17,6 +17,15 @@ export const hero = {
   scrollCue: "Листайте вниз",
 };
 
+/** Words for the full-bleed ticker band — decorative, keep them short. */
+export const ticker = [
+  "Сайты",
+  "Магазины",
+  "Мобильные приложения",
+  "Дизайн",
+  "Поддержка",
+];
+
 export const about = {
   eyebrow: "О нас",
   heading: "Команда полного цикла",

@@ -30,7 +30,7 @@ export function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative mx-auto max-w-6xl px-6 py-32 sm:px-10"
+      className="relative mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-32"
     >
       <SectionHeading
         eyebrow={pricing.eyebrow}

@@ -9,7 +9,7 @@ export function Contact() {
   return (
     <section
       id="contact"
-      className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-32 sm:px-10"
+      className="relative mx-auto flex min-h-screen max-w-6xl flex-col justify-center px-6 py-20 sm:px-10 sm:py-32"
     >
       <motion.div
         initial={{ opacity: 0, y: 24 }}

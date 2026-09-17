@@ -165,9 +165,21 @@ export function AnimatedBackground() {
     const pulseCtx = pulseCanvas.getContext("2d");
     if (!staticCtx || !pulseCtx) return;
 
-    const styles = getComputedStyle(document.documentElement);
-    const lineColor = styles.getPropertyValue("--color-line").trim() || "rgba(255,255,255,0.12)";
-    const accentColor = styles.getPropertyValue("--color-accent").trim() || "#c6ff3d";
+    // Theme colours are read from the CSS tokens rather than hardcoded, so
+    // they must be re-read whenever the theme changes — otherwise the traces
+    // keep drawing in the old theme's colour (white lines on a white page).
+    let lineColor = "rgba(255,255,255,0.12)";
+    let accentColor = "#c6ff3d";
+
+    function readThemeColors() {
+      const styles = getComputedStyle(document.documentElement);
+      lineColor =
+        styles.getPropertyValue("--color-line").trim() || lineColor;
+      accentColor =
+        styles.getPropertyValue("--color-accent").trim() || accentColor;
+    }
+
+    readThemeColors();
 
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -290,8 +302,22 @@ export function AnimatedBackground() {
       start();
     }
 
+    /** Repaint the cached line work in the new theme's colour. */
+    function handleThemeChange() {
+      readThemeColors();
+      drawTraces(staticCtx!, traces, lineColor);
+    }
+
     resize();
     start();
+
+    // The theme toggle flips data-theme on <html>; watch for that rather than
+    // plumbing the theme through React, so the canvas stays self-contained.
+    const themeObserver = new MutationObserver(handleThemeChange);
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
     window.addEventListener("resize", handleResize);
     document.addEventListener("visibilitychange", handleVisibility);
@@ -300,6 +326,7 @@ export function AnimatedBackground() {
     return () => {
       stop();
       clearTimeout(resizeTimeout);
+      themeObserver.disconnect();
       window.removeEventListener("resize", handleResize);
       document.removeEventListener("visibilitychange", handleVisibility);
       reducedMotionQuery.removeEventListener("change", handleMotionChange);

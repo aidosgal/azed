@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { nav } from "@/lib/content-ru";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 function ArrowChip() {
   return (
@@ -29,13 +30,13 @@ export function Nav() {
         >
           {nav.brand}
         </Link>
-        <Link
-          href="#contact"
-          className="flex items-center font-semibold"
-        >
-          {nav.cta}
-          <ArrowChip/>
-        </Link>
+        <div className="flex items-center gap-4 sm:gap-6">
+          <Link href="#contact" className="flex items-center font-semibold">
+            {nav.cta}
+            <ArrowChip />
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );
