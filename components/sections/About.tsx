@@ -10,7 +10,7 @@ export function About() {
   return (
     <section
       id="about"
-      className="relative mx-auto max-w-5xl px-6 py-32 sm:px-10"
+      className="relative mx-auto max-w-6xl px-6 py-32 sm:px-10"
     >
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -28,8 +28,8 @@ export function About() {
               </p>
             ))}
             <div className="flex flex-wrap gap-2 pt-2">
-              {about.stack.map((tech) => (
-                <TagPill key={tech} label={tech} />
+              {about.benefits.map((benefit) => (
+                <TagPill key={benefit} label={benefit} />
               ))}
             </div>
           </div>

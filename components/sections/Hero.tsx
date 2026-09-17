@@ -11,19 +11,19 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative flex min-h-screen flex-col justify-between px-6 pt-32 pb-16 sm:px-10"
+      className="relative flex min-h-screen flex-col justify-between pt-32 pb-16"
     >
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="m-auto max-w-3xl"
+        className="mx-auto my-auto w-full max-w-6xl px-6 sm:px-10"
       >
         <span className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent">
           <span className="h-px w-6 bg-accent" />
           {hero.eyebrow}
         </span>
-        <h1 className="mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl">
+        <h1 className="mt-6 max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl">
           {headlineLines.map((line, i) => (
             <span key={i} className="block">
               {line}
